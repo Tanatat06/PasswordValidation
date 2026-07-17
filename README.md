@@ -1,92 +1,52 @@
-# Lab 3 — TDD บนระบบ Password Validation
+# Lab: Clean Code & Specifications 
 
-ปฏิบัติการ 2 ชั่วโมง · เขียน test runner ด้วยมือ **ไม่ใช้เฟรมเวิร์ก**
+**01418211 Software Construction — Week 2**
 
----
+แลปนี้มี 2 ส่วน:
+- **ส่วน A** — เขียนโค้ดให้ผ่านเทสต์ (implement) — ตรวจอัตโนมัติ
+- **ส่วน B** — ฝึกเขียน spec (JavaDoc) เอง จากโค้ดที่ให้มา — ผู้สอนตรวจ
 
-## เป้าหมายของ Lab
+แก้ไฟล์ในโฟลเดอร์ `starter/` (มี `// TODO` กำกับ)
 
-ฝึกกระบวนการ Test-Driven Development เต็มวงจร กับฟังก์ชันตรวจสอบรหัสผ่าน โดย
-**ออกแบบ test case เอง** ด้วยเทคนิคที่เรียนในคาบ แล้วเขียน test runner ด้วยมือ
+## รัน (ตรวจส่วน A)
 
----
+1. เปิดโฟลเดอร์ `starter` ใน VSCode (ต้องติดตั้ง "Extension Pack for Java")
+2. เปิดไฟล์ `src/lab/TestRunner.java`
+3. กดปุ่ม Run ▶ ที่มุมขวาบน (หรือกด `Run` เหนือเมธอด main)
 
-## SPEC ของ `validate(String pw)`
+> โปรเจกต์ตั้งค่า `-ea` (เปิด assertions) ให้อัตโนมัติแล้วผ่านไฟล์ `.vscode/settings.json`
+> จึงกด Run ได้เลย ไม่ต้องพิมพ์คำสั่งอะไรเพิ่ม
 
-คืนค่า `true` ก็ต่อเมื่อรหัสผ่านผ่าน **ทุกเงื่อนไข** ต่อไปนี้:
-
-| # | เงื่อนไข | ถ้าไม่ผ่าน |
-|----|-----------|-----------|
-| R1 | `pw` ต้องไม่เป็น `null` | **throw** `IllegalArgumentException` |
-| R2 | ความยาว `>= 8` และ `<= 20` (inclusive) | คืน `false` |
-| R3 | มีตัวพิมพ์ใหญ่ `A-Z` อย่างน้อย 1 ตัว | คืน `false` |
-| R4 | มีตัวพิมพ์เล็ก `a-z` อย่างน้อย 1 ตัว | คืน `false` |
-| R5 | มีตัวเลข `0-9` อย่างน้อย 1 ตัว | คืน `false` |
-| R6 | ต้องไม่มีช่องว่าง (space) เลย | คืน `false` |
-
-> R1 เป็น input ภายนอก → ตรวจด้วย **exception** เสมอ
-> R2–R6 ถ้าผิดข้อใดข้อหนึ่ง → คืน `false` (ไม่ throw)
+ทำส่วน A ครบจะได้ `Part A: PASS 13 / FAIL 0`
 
 ---
 
-## สิ่งที่ต้องทำ
+## ส่วน A — Implement (3 ข้อ)
 
-### 1. ออกแบบ test case 
+**ข้อ 1 · `StringUtils.countVowels(String text)`** — Naming + Pure Function
+นับสระ a,e,i,o,u (พิมพ์เล็ก/ใหญ่). ใช้ตัวแปร local เท่านั้น. `null` → throw `IllegalArgumentException`
 
-`src/TestRunner.java` เตรียม helper `check()` และโครง `main()` ไว้ให้แล้ว
-พร้อมตัวอย่าง 2 ตัว (assertion ปกติ 1 + แพตเทิร์น try/catch สำหรับ "ต้อง throw" 1)
+**ข้อ 2 · `Payment.canCharge(User u)`** — Guard Clause
+เขียนแบบ return เร็ว แทน if ซ้อน. เก็บเงินได้เมื่อ `u != null` และ `u.active` และ `u.balance > 0`
 
-**หน้าที่ของคุณคือเติม `check(...)` ให้ครบทุกกรณี** โดยใช้:
-
-- **Equivalence partitioning** — แบ่ง input เป็นกลุ่มที่ควรให้ผลเหมือนกัน
-  (เช่น valid / สั้นไป / ยาวไป / ไม่มีตัวใหญ่ / ไม่มีตัวเล็ก / ไม่มีเลข / มีช่องว่าง)
-  แล้วทดสอบ **ตัวแทนกลุ่มละ 1 ตัว**
-- **Boundary value analysis** — ทดสอบค่าตรงรอยต่อของช่วงความยาว `8..20`
-  (ขอบล่าง, ขอบล่าง−1, ขอบบน, ขอบบน+1)
-
-> เกณฑ์: test ที่คุณออกแบบต้องครอบ **ทุก branch** ของ implementation (branch coverage ≥ 80%)
-
-### 2. เขียน test ก่อน → รัน (RED)
-
-รัน `TestRunner` โดยที่ `validate()` ยังว่าง → ต้องเห็น `[FAIL]`
-นี่คือการพิสูจน์ว่า test ทำงานจริง ไม่ได้ผ่านฟรีๆ
-
-### 3. Implement ให้ผ่าน (GREEN)
-
-เขียนโค้ดใน `starter/PasswordValidator.java` ตาม spec จน test ทุกตัวขึ้น `[PASS]`
-
-### 4. วัด coverage + Refactor
-
-ทำ branch checklist ด้วยมือ (แต่ละ `if` = 2 ทาง) ให้ ≥ 80%
-แล้ว refactor โค้ดให้สะอาดขึ้น โดยรัน `TestRunner` ก่อน–หลังทุกครั้ง ต้องได้ผลเท่าเดิม
+**ข้อ 3 · `BankAccount.withdraw(int amount)`** — Assertion vs Exception
+- `amount <= 0` → throw `IllegalArgumentException` (input ภายนอก = exception)
+- `assert amount <= balance` (เงื่อนไขภายใน = assert)
+- หลังถอน `balance` ลดลงเท่ากับ `amount`
 
 ---
 
-## วิธี compile และรัน
+## ส่วน B — เขียน Spec เอง (3 ข้อ)
 
-**ตั้งค่าใน VSCode** ให้เปิด `-ea` อัตโนมัติ — เพิ่มใน `.vscode/settings.json`:
+เปิดไฟล์ `Specs.java` — โค้ดทำงานถูกต้องแล้ว **ห้ามแก้โค้ด**
+หน้าที่คือเติม **JavaDoc** ให้ 3 เมธอด: `firstIndexOf`, `circleArea`, `normalize`
 
-```json
-{
-  "java.debug.settings.vmArgs": "-ea"
-}
-```
+JavaDoc แต่ละเมธอดต้องมีครบ 4 อย่าง:
+1. บรรทัดสรุปว่าเมธอด **ทำอะไร** (what ไม่ใช่ how)
+2. `@param` ของทุกพารามิเตอร์ + **ข้อจำกัด** (pre-condition)
+3. `@return` อธิบายค่าที่คืน (post-condition)
+4. `@throws` ทุก exception ที่โยน + เงื่อนไข
 
----
-
-## หน้าตาผลลัพธ์เมื่อรัน
-
-```
-== Password Validation ==
-  [PASS] 'Abcdef12' valid
-  [PASS] null -> throws IllegalArgumentException
-  ...
-==================================
-PASS 12 / FAIL 0
-==================================
-```
-
-เห็น `[FAIL]` ที่ไหน → ไปแก้ฟังก์ชันนั้น แล้วรันใหม่จน `[PASS]` ทั้งหมด (loop กลับไป Green)
+> อ่านโค้ดในเมธอดให้เข้าใจก่อน แล้วค่อยเขียน spec เช่น เมธอดที่ `throw` เมื่อ input null → ต้องมี `@throws` บอกเงื่อนไขนั้น
 
 ---
-
